@@ -51,7 +51,15 @@ class PacmanMazeDataset(Dataset):
         :returns: 1-D numerical pytorch tensor representing the maze
         '''
         # TODO: Task 1 - Part 1
-        return torch.tensor([])
+
+        result = []
+        for row in maze:
+            for cell in row:
+                result.append(PacmanMazeDataset.maze_entity_indexes[cell])
+        
+        return torch.flatten(F.one_hot(torch.tensor(result, dtype=torch.long), num_classes=len(PacmanMazeDataset.maze_entity_indexes))).to(torch.float).to(Constants.DEVICE)
+    
+        # return torch.tensor([])
     
     def vectorize_move(move):
         '''
@@ -65,7 +73,9 @@ class PacmanMazeDataset(Dataset):
         :returns: One-hot vector representation of that action.
         '''
         # TODO: Task 1 - Part 2
-        return torch.tensor([])
+        # return torch.tensor([])
+        return F.one_hot(torch.tensor(PacmanMazeDataset.move_indexes[move]), num_classes=len(PacmanMazeDataset.move_indexes)).to(torch.float).to(Constants.DEVICE)
+
 
 
 class PacNet(nn.Module):
@@ -133,3 +143,25 @@ if __name__ == "__main__":
     
     # TODO: Task 6 Here
     
+
+    result = MazeGen.get_labeled_data(Constants.MAZE, Constants.N_SAMPLES)
+    data = PacmanMazeDataset(result)
+    train_dataloader = DataLoader(data, batch_size=4, shuffle=True)
+    train_features, train_labels = next(iter(train_dataloader))
+    
+    # NN Construction
+    model = PacNet(Constants.MAZE).to(Constants.DEVICE)
+    
+    # Optimization
+    learning_rate = 1e-3
+    batch_size = 64
+    epochs = 100
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------")
+        train_loop(train_dataloader, model, loss_fn, optimizer)
+    print("Done!")
+    
+    # Save weights
+    torch.save(model.state_dict(), Constants.PARAM_PATH)
