@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Introductory Deep Learning exercise for training agents to navigate
 small Pacman Mazes
@@ -94,7 +96,20 @@ class PacNet(nn.Module):
         :maze: The Pacman Maze structure on which this PacNet will be trained
         """
         super(PacNet, self).__init__()
-        # TODO: Task 3 Here
+
+        # Task 3 Here
+        self.flatten = nn.Flatten()
+        rows = len(maze)
+        cols = len(maze[0])
+        entities = len(Constants.ENTITIES)
+        moves = len(Constants.MOVES)
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(rows * cols * entities, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, moves),
+        )
 
     def forward(self, x):
         """
@@ -135,23 +150,18 @@ if __name__ == "__main__":
     pacman agent.
     See: https://pytorch.org/tutorials/beginner/basics/optimization_tutorial.html
     """
-    # TODO: Task 2 Here
-    
-    # TODO: Task 4 Here
-    
-    # TODO: Task 5 Here
-    
-    # TODO: Task 6 Here
-    
 
+    # Task 2 Here
     result = MazeGen.get_labeled_data(Constants.MAZE, Constants.N_SAMPLES)
     data = PacmanMazeDataset(result)
     train_dataloader = DataLoader(data, batch_size=4, shuffle=True)
     train_features, train_labels = next(iter(train_dataloader))
     
+    # Task 4 Here
     # NN Construction
     model = PacNet(Constants.MAZE).to(Constants.DEVICE)
     
+    # Task 5 Here
     # Optimization
     learning_rate = 1e-3
     batch_size = 64
@@ -163,5 +173,6 @@ if __name__ == "__main__":
         train_loop(train_dataloader, model, loss_fn, optimizer)
     print("Done!")
     
+    # Task 6 Here
     # Save weights
     torch.save(model.state_dict(), Constants.PARAM_PATH)
